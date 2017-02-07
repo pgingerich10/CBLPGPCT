@@ -128,6 +128,18 @@
            05  FILLER              PIC X(25)   VALUE SPACES.
            05  FILLER              PIC X(30)   VALUE 
                                    'MACHINE COST PERCENTAGE REPORT'.
+                                   
+       01  COL-HDGS-LINE.
+           05  FILLER              PIC X(22)   VALUE SPACES.
+           05  FILLER              PIC X(7)    VALUE 'MACHINE'.
+           05  FILLER              PIC X(21)   VALUE SPACES.
+           05  FILLER              PIC X(10)    VALUE 'PERCENTAGE'.
+           
+       01  D1.
+           05  FILLER              PIC X(23)   VALUE SPACES.
+           05  O-MACHINE           PIC X(5).
+           05  FILLER              PIC X(24)   VALUE SPACES.
+           05  O-PERCENT           PIC Z99.99.
            
        01 BLANK-LINE               PIC X       VALUE SPACE.
            
@@ -145,19 +157,32 @@
            MOVE I-MONTH TO O-MONTH.
            MOVE I-DAY TO O-DAY.
            MOVE I-YEAR TO O-YEAR.
+           OPEN INPUT ORDER-DATA.
+           OPEN INPUT MACH-SHT-COST-DATA.
+           OPEN INPUT MACH-COST-DATA.
            OPEN OUTPUT PRTOUT.
            PERFORM L9-HDGS THRU L9-HDGS-EXIT.
        L2-INIT-EXIT.
            EXIT.
            
        L2-MAINLINE.
+           PERFORM L3-DETAIL THRU L3-DETAIL-EXIT.
            MOVE 'N' TO MORE-RECS.
        L2-MAINLINE-EXIT.
            EXIT.
            
        L2-CLOSING.
+           CLOSE ORDER-DATA.
+           CLOSE MACH-SHT-COST-DATA.
+           CLOSE MACH-COST-DATA.
            CLOSE PRTOUT.
        L2-CLOSING-EXIT.
+           EXIT.
+           
+       L3-DETAIL.
+           WRITE PRTLINE FROM D1
+               AFTER ADVANCING 1 LINE.
+       L3-DETAIL-EXIT.
            EXIT.
            
        L9-HDGS.
@@ -167,6 +192,8 @@
                AFTER ADVANCING PAGE.
            WRITE PRTLINE FROM RPT-TITLE-LINE
                AFTER ADVANCING 1 LINE.
+           WRITE PRTLINE FROM COL-HDGS-LINE
+               AFTER ADVANCING 2 LINES.
            WRITE PRTLINE FROM BLANK-LINE
                AFTER ADVANCING 1 LINE.
        L9-HDGS-EXIT.
