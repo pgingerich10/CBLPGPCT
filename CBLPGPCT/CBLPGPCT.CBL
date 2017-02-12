@@ -6,8 +6,8 @@
        
       *****************************************************************
       * 
-      *    THIS PROGRAM WILL CREATE A REPORT SHOWING THE COST TO
-      *    CREATE EACH MACHINE.    
+      *    THIS PROGRAM WILL CREATE A REPORT SHOWING THE SHORTAGE COST
+      *    PERCENTAGE OF EACH MACHINE.
       * 
       *****************************************************************
        
