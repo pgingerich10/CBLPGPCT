@@ -145,7 +145,7 @@
            
        PROCEDURE DIVISION.
        
-       L1-CBLPGCST.
+       L1-CBLPGPCT.
            PERFORM L2-INIT THRU L2-INIT-EXIT.
            PERFORM L2-MAINLINE THRU L2-MAINLINE-EXIT
                UNTIL NO-MORE-RECS.
