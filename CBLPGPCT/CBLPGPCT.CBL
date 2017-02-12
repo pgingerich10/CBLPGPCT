@@ -100,6 +100,8 @@
        WORKING-STORAGE SECTION.
        
        01  WORK-AREA.
+           05  WK-COST             PIC 9(8)V99     VALUE ZEROS.
+           05  WK-PCT              PIC 9V99        VALUE ZEROS.
            05  MORE-RECS           PIC X           VALUE 'Y'.
                88  NO-MORE-RECS                    VALUE 'N'.
            05  C-PCTR              PIC 99          VALUE ZEROS.
@@ -138,8 +140,8 @@
        01  D1.
            05  FILLER              PIC X(23)   VALUE SPACES.
            05  O-MACHINE           PIC X(5).
-           05  FILLER              PIC X(24)   VALUE SPACES.
-           05  O-PERCENT           PIC Z99.99.
+           05  FILLER              PIC X(25)   VALUE SPACES.
+           05  O-PERCENT           PIC ZV99.
            
        01 BLANK-LINE               PIC X       VALUE SPACE.
            
@@ -162,12 +164,19 @@
            OPEN INPUT MACH-COST-DATA.
            OPEN OUTPUT PRTOUT.
            PERFORM L9-HDGS THRU L9-HDGS-EXIT.
+           PERFORM L9-READ-SHORT THRU L9-READ-SHORT-EXIT.
        L2-INIT-EXIT.
            EXIT.
            
        L2-MAINLINE.
+           PERFORM L9-READ-COST THRU L9-READ-COST-EXIT
+               UNTIL I-SHT-MACHINE = I-CST-MACHINE.
+           PERFORM L9-READ-ORDER THRU L9-READ-ORDER-EXIT
+               UNTIL I-SHT-MACHINE = I-ORD-MACHINE.
+           PERFORM L3-CALCS THRU L3-CALCS-EXIT.
+           PERFORM L3-MOVES THRU L3-MOVES-EXIT.
            PERFORM L3-DETAIL THRU L3-DETAIL-EXIT.
-           MOVE 'N' TO MORE-RECS.
+           PERFORM L9-READ-SHORT THRU L9-READ-SHORT-EXIT.
        L2-MAINLINE-EXIT.
            EXIT.
            
@@ -177,6 +186,18 @@
            CLOSE MACH-COST-DATA.
            CLOSE PRTOUT.
        L2-CLOSING-EXIT.
+           EXIT.
+           
+       L3-CALCS.
+           MULTIPLY I-CST-COST BY I-ORD-NUM GIVING WK-COST.
+           COMPUTE WK-PCT ROUNDED = I-SHT-COST / WK-COST.
+       L3-CALCS-EXIT.
+           EXIT.
+           
+       L3-MOVES.
+           MOVE I-SHT-MACHINE TO O-MACHINE.
+           MOVE WK-PCT TO O-PERCENT.
+       L3-MOVES-EXIT.
            EXIT.
            
        L3-DETAIL.
@@ -197,4 +218,24 @@
            WRITE PRTLINE FROM BLANK-LINE
                AFTER ADVANCING 1 LINE.
        L9-HDGS-EXIT.
+           EXIT.
+           
+       L9-READ-SHORT.
+           READ MACH-SHT-COST-DATA
+               AT END MOVE 'N' TO MORE-RECS.
+       L9-READ-SHORT-EXIT.
+           EXIT.
+           
+       L9-READ-COST.
+           READ MACH-COST-DATA
+               AT END DISPLAY
+                   'ERROR - MACHINE NOT FOUND IN MACHINE-COST DATA.'.
+       L9-READ-COST-EXIT.
+           EXIT.
+           
+       L9-READ-ORDER.
+           READ ORDER-DATA
+               AT END DISPLAY
+                   'ERROR - MACHINE NOT FOUND IN ORDER DATA.'.
+       L9-READ-ORDER-EXIT.
            EXIT.
