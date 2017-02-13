@@ -100,12 +100,21 @@
        WORKING-STORAGE SECTION.
        
        01  WORK-AREA.
-           05  WK-COST             PIC 9(8)V99     VALUE ZEROS.
+           05  SUB1                PIC 999         VALUE ZEROS.
+           05  SUB2                PIC 999         VALUE ZEROS.
+           05  WK-MACH-PCT.
+               10  WK-MACH             PIC X(5)        VALUE SPACES.
+               10  WK-COST             PIC 9(8)V99     VALUE ZEROS.
            05  WK-PCT              PIC 9V99        VALUE ZEROS.
            05  MORE-RECS           PIC X           VALUE 'Y'.
                88  NO-MORE-RECS                    VALUE 'N'.
            05  C-PCTR              PIC 99          VALUE ZEROS.
            05  WK-HOLD             PIC X           VALUE SPACE.
+           
+       01  PERCENT-DATA.
+           05  PERCENT-TABLE OCCURS 100 TIMES.
+               10  TBL-MACHINE PIC X(5).
+               10  TBL-PERCENT PIC 9V99.
            
        01  CURRENT-DATE.
            05  I-DATE.
@@ -165,6 +174,8 @@
            OPEN OUTPUT PRTOUT.
            PERFORM L9-HDGS THRU L9-HDGS-EXIT.
            PERFORM L9-READ-SHORT THRU L9-READ-SHORT-EXIT.
+           INITIALIZE PERCENT-DATA 
+               REPLACING NUMERIC ALPHANUMERIC BY LOW-VALUES.
        L2-INIT-EXIT.
            EXIT.
            
@@ -175,12 +186,15 @@
                UNTIL I-SHT-MACHINE = I-ORD-MACHINE.
            PERFORM L3-CALCS THRU L3-CALCS-EXIT.
            PERFORM L3-MOVES THRU L3-MOVES-EXIT.
-           PERFORM L3-DETAIL THRU L3-DETAIL-EXIT.
            PERFORM L9-READ-SHORT THRU L9-READ-SHORT-EXIT.
        L2-MAINLINE-EXIT.
            EXIT.
            
        L2-CLOSING.
+           PERFORM L3-SORT THRU L3-SORT-EXIT.
+           PERFORM L3-DETAIL THRU L3-DETAIL-EXIT
+               VARYING SUB1 FROM 1 BY 1
+                   UNTIL SUB1 > 100 OR TBL-PERCENT(SUB1) = LOW-VALUES.
            CLOSE ORDER-DATA.
            CLOSE MACH-SHT-COST-DATA.
            CLOSE MACH-COST-DATA.
@@ -195,12 +209,29 @@
            EXIT.
            
        L3-MOVES.
-           MOVE I-SHT-MACHINE TO O-MACHINE.
-           MOVE WK-PCT TO O-PERCENT.
+           ADD 1 TO SUB1.
+           MOVE I-SHT-MACHINE TO TBL-MACHINE(SUB1).
+           MOVE WK-PCT TO TBL-PERCENT(SUB1).
        L3-MOVES-EXIT.
            EXIT.
            
+       L3-SORT.
+           PERFORM VARYING SUB1 FROM 1 BY 1 
+           UNTIL SUB1 > 100 OR TBL-PERCENT(SUB1) = LOW-VALUES
+               PERFORM VARYING SUB2 FROM SUB1 BY 1 UNTIL SUB2 > 100
+                   IF TBL-PERCENT(SUB2) > TBL-PERCENT(SUB1)
+                       MOVE PERCENT-TABLE(SUB1) TO WK-MACH-PCT
+                       MOVE PERCENT-TABLE(SUB2) TO PERCENT-TABLE(SUB1)
+                       MOVE WK-MACH-PCT TO PERCENT-TABLE(SUB2)
+                   END-IF
+               END-PERFORM
+           END-PERFORM.
+       L3-SORT-EXIT.
+           EXIT.
+           
        L3-DETAIL.
+           MOVE TBL-MACHINE(SUB1) TO O-MACHINE.
+           MOVE TBL-PERCENT(SUB1) TO O-PERCENT.
            WRITE PRTLINE FROM D1
                AFTER ADVANCING 1 LINE.
        L3-DETAIL-EXIT.
